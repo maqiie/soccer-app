@@ -1,0 +1,29 @@
+{
+    "project_info": {
+      "project_number": "566261523066",
+      "project_id": "soccer-games-app",
+      "storage_bucket": "soccer-games-app.firebasestorage.app"
+    },
+    "client": [
+      {
+        "client_info": {
+          "mobilesdk_app_id": "1:566261523066:android:1f9e8d7ba97947ab8791c3",
+          "android_client_info": {
+            "package_name": "soccer.appname"
+          }
+        },
+        "oauth_client": [],
+        "api_key": [
+          {
+            "current_key": "AIzaSyACSy2gYdHJ6vK1nM34jUQqLyDflcAkiGc"
+          }
+        ],
+        "services": {
+          "appinvite_service": {
+            "other_platform_oauth_client": []
+          }
+        }
+      }
+    ],
+    "configuration_version": "1"
+  }
