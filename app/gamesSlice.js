@@ -1,9 +1,14 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import axios from 'axios';
+import { fetchUpcomingGames } from '../assets/services/sportsApiService';
 
 export const fetchGames = createAsyncThunk('games/fetchGames', async () => {
-  const response = await axios.get('https://www.thesportsdb.com/api/v1/json/2/eventsnextleague.php?id=4396');
-  return response.data.events;
+  try {
+    const games = await fetchUpcomingGames();
+    console.log('Fetched Games:', games); // Debugging line
+    return games;
+  } catch (error) {
+    throw new Error('Failed to fetch games');
+  }
 });
 
 const gamesSlice = createSlice({
@@ -16,8 +21,9 @@ const gamesSlice = createSlice({
   },
   reducers: {
     filterGames: (state, action) => {
-      state.filteredGames = state.games.filter(game =>
-        game.strEvent.toLowerCase().includes(action.payload.toLowerCase())
+      const searchQuery = action.payload.toLowerCase();
+      state.filteredGames = state.games.filter(
+        (game) => game.strEvent?.toLowerCase().includes(searchQuery)
       );
     },
   },
@@ -28,8 +34,9 @@ const gamesSlice = createSlice({
       })
       .addCase(fetchGames.fulfilled, (state, action) => {
         state.status = 'succeeded';
-        state.games = action.payload;
-        state.filteredGames = action.payload;
+        state.games = action.payload || [];
+        state.filteredGames = action.payload || [];
+        console.log('Games stored in state:', action.payload); // Debugging line
       })
       .addCase(fetchGames.rejected, (state, action) => {
         state.status = 'failed';
