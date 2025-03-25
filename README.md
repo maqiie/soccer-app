@@ -1,50 +1,54 @@
-# Welcome to your Expo app 👋
+Soccer Games App
+Overview
+The Soccer Games App is a React Native application built with Expo that fetches upcoming Major League Soccer (MLS) matches from the Free Sports API. The app includes authentication, profile management, search functionality, and favorites using Firebase and Redux Toolkit.
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+Features
+1. Authentication
+Users can sign up and log in using Firebase Authentication.
 
-## Get started
+Protected routes ensure only logged-in users can access the app.
 
-1. Install dependencies
+2. Home Screen (Upcoming Matches)
+Displays upcoming MLS soccer games fetched dynamically from the Free Sports API.
 
-   ```bash
-   npm install
-   ```
+Implements search functionality using Redux to filter games by team name or league.
 
-2. Start the app
+Infinite scrolling for seamless browsing.
 
-   ```bash
-    npx expo start
-   ```
+3. Profile Management
+Users can update their profile (name, favorite team, profile picture).
 
-In the output, you'll find options to open the app in a
+Users can delete their account if needed.
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+All updates sync in real time with Firebase Firestore.
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+4. Favorites
+Users can favorite matches, and selections are stored in Firebase Firestore.
 
-## Get a fresh project
+Favorite matches are listed in the Favorites tab for easy access.
 
-When you're ready, run:
+5. Match Details
+Clicking on a match opens a detailed match view with additional information.
 
-```bash
-npm run reset-project
-```
+6. Real-time Updates
+Profile changes update in real time using Firestore.
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+Soccer match data is fetched dynamically.
 
-## Learn more
+7. Responsive Design
+Built with GlueStack UI for a modern and smooth UI.
 
-To learn more about developing your project with Expo, look at the following resources:
+Works on both Android and iOS.
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+Tech Stack
+Frontend: React Native (Expo 50+)
 
-## Join the community
+State Management: Redux Toolkit
 
-Join our community of developers creating universal apps.
+Backend: Firebase (Firestore, Firebase Auth)
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+API: Free Sports API (https://www.thesportsdb.com/)
+
+Navigation: React Navigation / Expo Router
+
+UI Components: GlueStack UI
