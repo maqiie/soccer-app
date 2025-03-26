@@ -254,35 +254,41 @@ const HomeScreen = ({ navigation }) => {
     debouncedFilter(text);
   };
 
-  // Toggle favorite status in Firestore
   const toggleFavorite = async (match) => {
     const user = auth.currentUser;
-
+  
     if (!user) {
       console.log("User not authenticated");
       return;
     }
-
+  
+    // Reference to the user's document in the "favorites" collection
     const userFavoritesRef = doc(db, "favorites", user.uid);
+  
     try {
+      // Fetch the current document to get existing favorites
       const docSnap = await getDoc(userFavoritesRef);
       const existingFavorites = docSnap.exists() ? docSnap.data().games || [] : [];
+      
+      // Check if the match is already in favorites
       let updatedFavorites;
-
       if (existingFavorites.some((fav) => fav.idEvent === match.idEvent)) {
+        // If match exists, remove it from favorites
         updatedFavorites = existingFavorites.filter((fav) => fav.idEvent !== match.idEvent);
       } else {
+        // If match does not exist, add it to favorites
         updatedFavorites = [...existingFavorites, match];
       }
-
+  
+      // Update the user's favorites document with the new list of favorites
       await setDoc(userFavoritesRef, { games: updatedFavorites }, { merge: true });
-
-      dispatch(toggleFavoriteAsync(match)); // Update Redux state
+  
+      // Optionally dispatch to Redux or update local state
+      dispatch(toggleFavoriteAsync(match)); // Assuming this is how you update the state
     } catch (error) {
       console.error("Error updating favorites:", error);
     }
   };
-
   const renderItem = ({ item }) => {
     const isFavorite = favorites.some((fav) => fav.idEvent === item.idEvent);
     return (

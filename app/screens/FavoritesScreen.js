@@ -4,7 +4,7 @@ import {
   Image, ActivityIndicator 
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { collection, query, where, onSnapshot } from "firebase/firestore";
+import { doc, getDoc, onSnapshot } from "firebase/firestore";
 import { auth, db } from '../../assets/services/firebaseConfig';
 import ProtectedScreen from '../screens/ProtectedScreen';
 
@@ -20,16 +20,17 @@ const FavoritesScreen = ({ navigation }) => {
       return;
     }
 
-    // Define the Firestore query to get the favorites for the current user
-    const q = query(collection(db, "favorites"), where("userId", "==", user.uid));
+    // Define the Firestore reference to the user's favorites document
+    const userFavoritesRef = doc(db, "favorites", user.uid);
 
     // Set up the listener for real-time updates
-    const unsubscribe = onSnapshot(q, (querySnapshot) => {
-      const favoriteMatches = querySnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data(),
-      }));
-      setFavorites(favoriteMatches);
+    const unsubscribe = onSnapshot(userFavoritesRef, (docSnapshot) => {
+      if (docSnapshot.exists()) {
+        const favoriteMatches = docSnapshot.data().games || [];
+        setFavorites(favoriteMatches);
+      } else {
+        setFavorites([]); // In case the document doesn't exist
+      }
       setLoading(false); // Stop loading once data is fetched
     }, (error) => {
       console.error("Error fetching favorites:", error);
@@ -70,7 +71,7 @@ const FavoritesScreen = ({ navigation }) => {
         ) : favorites.length > 0 ? (
           <FlatList
             data={favorites}
-            keyExtractor={(item) => item.id}
+            keyExtractor={(item, index) => index.toString()} // You can use `item.idEvent` if available
             renderItem={renderItem}
             contentContainerStyle={styles.listContainer}
           />
