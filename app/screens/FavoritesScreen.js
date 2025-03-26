@@ -1,20 +1,56 @@
-import React from 'react';
-import { View, Text, FlatList, StyleSheet, TouchableOpacity, Image } from 'react-native';
-import { useSelector } from 'react-redux';
+import React, { useEffect, useState } from 'react';
+import { 
+  View, Text, FlatList, StyleSheet, TouchableOpacity, 
+  Image, ActivityIndicator 
+} from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { colors } from '../../colors';
+import { collection, query, where, onSnapshot } from "firebase/firestore";
+import { auth, db } from '../../assets/services/firebaseConfig';
 import ProtectedScreen from '../screens/ProtectedScreen';
 
 const FavoritesScreen = ({ navigation }) => {
-  const favorites = useSelector((state) => state.games.favorites) || [];
+  const [favorites, setFavorites] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const user = auth.currentUser;
+
+  useEffect(() => {
+    // Check if the user is authenticated
+    if (!user) {
+      setLoading(false);
+      return;
+    }
+
+    // Define the Firestore query to get the favorites for the current user
+    const q = query(collection(db, "favorites"), where("userId", "==", user.uid));
+
+    // Set up the listener for real-time updates
+    const unsubscribe = onSnapshot(q, (querySnapshot) => {
+      const favoriteMatches = querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+      setFavorites(favoriteMatches);
+      setLoading(false); // Stop loading once data is fetched
+    }, (error) => {
+      console.error("Error fetching favorites:", error);
+      setLoading(false); // Stop loading on error
+    });
+
+    // Clean up the listener when the component is unmounted
+    return () => unsubscribe();
+  }, [user]); // Run the effect when `user` changes
 
   const renderItem = ({ item }) => (
     <TouchableOpacity
       style={styles.card}
       onPress={() => navigation.navigate('MatchDetails', { match: item })}
+      activeOpacity={0.7}
     >
       <View style={styles.cardHeader}>
-        <Image source={{ uri: item.strThumb || 'https://via.placeholder.com/100x100' }} style={styles.thumbnail} />
+        <Image 
+          source={{ uri: item.strThumb || 'https://via.placeholder.com/100x100' }} 
+          style={styles.thumbnail} 
+        />
         <View style={styles.cardInfo}>
           <Text style={styles.title}>{item.strEvent}</Text>
           <Text style={styles.date}>{new Date(item.dateEvent).toLocaleDateString()}</Text>
@@ -28,11 +64,13 @@ const FavoritesScreen = ({ navigation }) => {
     <ProtectedScreen>
       <LinearGradient colors={['#1e3c72', '#2a5298']} style={styles.container}>
         <Text style={styles.header}>Favorite Matches</Text>
-        
-        {favorites.length > 0 ? (
+
+        {loading ? (
+          <ActivityIndicator size="large" color="#fff" style={{ marginTop: 20 }} />
+        ) : favorites.length > 0 ? (
           <FlatList
             data={favorites}
-            keyExtractor={(item) => item?.idEvent?.toString()}
+            keyExtractor={(item) => item.id}
             renderItem={renderItem}
             contentContainerStyle={styles.listContainer}
           />
@@ -68,27 +106,25 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
   },
   card: {
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    borderRadius: 16,
-    padding: 16,
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+    borderRadius: 14,
+    padding: 14,
     marginBottom: 16,
     shadowColor: '#000',
-    shadowOpacity: 0.3,
-    shadowRadius: 12,
-    shadowOffset: { width: 0, height: 5 },
-    elevation: 6,
-    borderLeftWidth: 6,
-    borderLeftColor: colors.secondary,
+    shadowOpacity: 0.2,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 4,
   },
   cardHeader: {
     flexDirection: 'row',
     alignItems: 'center',
   },
   thumbnail: {
-    width: 60,
-    height: 60,
-    borderRadius: 10,
-    marginRight: 12,
+    width: 70,
+    height: 70,
+    borderRadius: 12,
+    marginRight: 14,
   },
   cardInfo: {
     flex: 1,
@@ -97,14 +133,14 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontWeight: 'bold',
     fontSize: 18,
+    marginBottom: 4,
   },
   date: {
-    color: '#eee',
-    marginTop: 4,
+    color: '#ddd',
     fontSize: 14,
   },
   league: {
-    color: '#ddd',
+    color: '#ccc',
     fontSize: 14,
     fontWeight: '500',
   },

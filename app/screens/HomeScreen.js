@@ -185,8 +185,7 @@
 // });
 
 // export default HomeScreen;
-
-import React, { useEffect, useState, useCallback, useRef } from "react";
+import React, { useEffect, useState, useCallback, useRef, useMemo } from "react";
 import {
   View,
   Text,
@@ -200,10 +199,12 @@ import {
   Image,
 } from "react-native";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchGames, filterGames, toggleFavorite, removeFromFavorites } from "../gamesSlice";
+import { fetchGames, filterGames, toggleFavoriteAsync } from "../gamesSlice"; 
 import debounce from "lodash.debounce";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
+import { auth, db } from "../../assets/services/firebaseConfig"; 
+import { doc, setDoc, getDoc } from "firebase/firestore";
 
 const { width } = Dimensions.get("window");
 
@@ -243,8 +244,8 @@ const HomeScreen = ({ navigation }) => {
   }, [status, dispatch]);
 
   // Debounced search filtering
-  const debouncedFilter = useCallback(
-    debounce((text) => dispatch(filterGames(text)), 300),
+  const debouncedFilter = useMemo(
+    () => debounce((text) => dispatch(filterGames(text)), 300),
     [dispatch]
   );
 
@@ -253,22 +254,37 @@ const HomeScreen = ({ navigation }) => {
     debouncedFilter(text);
   };
 
-  // Toggle match favorite status
-  const toggleFavoriteHandler = useCallback(
-    (match) => {
-      const isFavorite = favorites.some((fav) => fav.idEvent === match.idEvent);
-      if (isFavorite) {
-        dispatch(removeFromFavorites(match.idEvent));
+  // Toggle favorite status in Firestore
+  const toggleFavorite = async (match) => {
+    const user = auth.currentUser;
+
+    if (!user) {
+      console.log("User not authenticated");
+      return;
+    }
+
+    const userFavoritesRef = doc(db, "favorites", user.uid);
+    try {
+      const docSnap = await getDoc(userFavoritesRef);
+      const existingFavorites = docSnap.exists() ? docSnap.data().games || [] : [];
+      let updatedFavorites;
+
+      if (existingFavorites.some((fav) => fav.idEvent === match.idEvent)) {
+        updatedFavorites = existingFavorites.filter((fav) => fav.idEvent !== match.idEvent);
       } else {
-        dispatch(toggleFavorite(match));
+        updatedFavorites = [...existingFavorites, match];
       }
-    },
-    [dispatch, favorites]
-  );
+
+      await setDoc(userFavoritesRef, { games: updatedFavorites }, { merge: true });
+
+      dispatch(toggleFavoriteAsync(match)); // Update Redux state
+    } catch (error) {
+      console.error("Error updating favorites:", error);
+    }
+  };
 
   const renderItem = ({ item }) => {
     const isFavorite = favorites.some((fav) => fav.idEvent === item.idEvent);
-
     return (
       <TouchableOpacity
         activeOpacity={0.8}
@@ -277,7 +293,7 @@ const HomeScreen = ({ navigation }) => {
       >
         <LinearGradient colors={[colors.cardStart, colors.cardEnd]} style={styles.card}>
           {/* Favorite Button */}
-          <TouchableOpacity style={styles.favoriteButton} onPress={() => toggleFavoriteHandler(item)}>
+          <TouchableOpacity style={styles.favoriteButton} onPress={() => toggleFavorite(item)}>
             <Ionicons name={isFavorite ? "heart" : "heart-outline"} size={24} color="#FF6B6B" />
           </TouchableOpacity>
 
@@ -287,9 +303,9 @@ const HomeScreen = ({ navigation }) => {
           </View>
 
           {/* Match Details */}
-          <Text style={styles.gameTitle}>{item.strEvent}</Text>
-          <Text style={styles.gameDetails}>🏆 {item.strLeague}</Text>
-          <Text style={styles.gameDetails}>📅 {new Date(item.dateEvent).toLocaleDateString()}</Text>
+          <Text style={styles.gameTitle}>{item.strEvent || "Unknown Match"}</Text>
+          <Text style={styles.gameDetails}>🏆 {item.strLeague || "Unknown League"}</Text>
+          <Text style={styles.gameDetails}>📅 {item.dateEvent ? new Date(item.dateEvent).toLocaleDateString() : "TBA"}</Text>
         </LinearGradient>
       </TouchableOpacity>
     );
@@ -324,7 +340,7 @@ const HomeScreen = ({ navigation }) => {
         ) : (
           <FlatList
             data={filteredGames}
-            keyExtractor={(item, index) => (item?.idEvent ? item.idEvent.toString() : index.toString())}
+            keyExtractor={(item) => item.idEvent?.toString() || `fallback-${Math.random()}`}
             renderItem={renderItem}
           />
         )}
@@ -420,5 +436,3 @@ const styles = StyleSheet.create({
 });
 
 export default HomeScreen;
-
-
