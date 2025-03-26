@@ -13,16 +13,16 @@ import { store } from "./store";
 import HomeScreen from "./app/screens/HomeScreen";
 import ProfileScreen from "./app/screens/ProfileScreen";
 import MatchDetailsScreen from "./app/screens/MatchDetailsScreen";
-import FavoritesScreen from "./app/screens/FavoritesScreen"; // Corrected import
-import { GluestackUIProvider } from "@gluestack-ui/themed"; // Corrected import
+import FavoritesScreen from "./app/screens/FavoritesScreen"; 
+import { GluestackUIProvider } from "@gluestack-ui/themed"; 
 import { config } from "@gluestack-ui/config";
 import { Ionicons } from "@expo/vector-icons";
-import { colors } from "./colors"; // Ensure correct path
+import { colors } from "./colors"; 
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
 
-// ✅ Corrected HomeStack structure
+
 const HomeStack = () => (
   <Stack.Navigator>
     <Stack.Screen name="Home" component={HomeScreen} options={{ headerShown: false }} />

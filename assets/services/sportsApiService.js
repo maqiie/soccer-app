@@ -8,7 +8,7 @@ const fetchMLSUpcomingFixtures = async () => {
   try {
     const response = await axios.get(`${API_URL}/eventsnextleague.php?id=4346`);
     if (response.data.events) {
-      console.log("MLS Upcoming Fixtures:", response.data.events);
+      // console.log("MLS Upcoming Fixtures:", response.data.events);
       return response.data.events;
     } else {
       console.log("No upcoming MLS fixtures found.");

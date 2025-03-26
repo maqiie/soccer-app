@@ -16,6 +16,7 @@ const gamesSlice = createSlice({
   initialState: {
     games: [],
     filteredGames: [],
+    favorites: [],
     status: 'idle',
     error: null,
   },
@@ -25,6 +26,19 @@ const gamesSlice = createSlice({
       state.filteredGames = state.games.filter(
         (game) => game.strEvent?.toLowerCase().includes(searchQuery)
       );
+    },
+    toggleFavorite: (state, action) => {
+      const gameId = action.payload;
+      const game = state.games.find((game) => game.idEvent === gameId);
+
+      if (game) {
+        game.isFavorite = !game.isFavorite;
+        if (game.isFavorite) {
+          state.favorites.push(game);
+        } else {
+          state.favorites = state.favorites.filter((fav) => fav.idEvent !== gameId);
+        }
+      }
     },
   },
   extraReducers: (builder) => {
@@ -45,5 +59,5 @@ const gamesSlice = createSlice({
   },
 });
 
-export const { filterGames } = gamesSlice.actions;
+export const { filterGames, toggleFavorite } = gamesSlice.actions;
 export default gamesSlice.reducer;
